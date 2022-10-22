@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	sheetId = "1WDW-gIhLJquDh_Y7LIG7Dvq75saF5SqhmGLQ9oWr_34"
+	sheetId     = "1WDW-gIhLJquDh_Y7LIG7Dvq75saF5SqhmGLQ9oWr_34"
+	wowHeadBase = "https://www.wowhead.com/item="
 )
 
 var (
@@ -129,4 +130,8 @@ func readFromSheets() {
 	for _, sheet := range spreadsheet.Sheets {
 		log.Printf("%s: %s :: (%d, %d)\n", sheet.Properties.Title, sheet.Properties.SheetType, sheet.Properties.GridProperties.RowCount, sheet.Properties.GridProperties.ColumnCount)
 	}
+}
+
+func getItemLink(itemId string) string {
+	return wowHeadBase + itemId
 }
