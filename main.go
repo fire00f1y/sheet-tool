@@ -20,8 +20,10 @@ const (
 	wowHeadBase    = "https://www.wowhead.com/item="
 	dateFormat     = "2006-01-02"
 	dateTimeFormat = "2006-01-02 15:04:05"
-	overviewSheet  = "Accumulated Modifiers"
+	overviewSheet  = "Quick View"
 	rowDimension   = "ROWS"
+
+	overviewRange = "!A2:B67"
 )
 
 var (
@@ -98,7 +100,7 @@ func main() {
 	})
 	modifierMap["An Item"] = fakeList2
 
-	if err := writeModifiersToSheets(modifierMap); err != nil {
+	if err := writeModifiersToSheets(modifierMap, overviewSheet); err != nil {
 		log.Fatalf("error writing data to sheets: %v\n", err)
 	}
 
@@ -189,7 +191,7 @@ func readFromSheets() {
 	}
 }
 
-func writeModifiersToSheets(modifierMap ModifierMap) error {
+func writeModifiersToSheets(modifierMap ModifierMap, sheet string) error {
 	itemList := make([]string, 0)
 	for key := range modifierMap {
 		itemList = append(itemList, key)
@@ -205,11 +207,19 @@ func writeModifiersToSheets(modifierMap ModifierMap) error {
 		values = append(values, row)
 	}
 
-	n := strconv.Itoa(len(itemList) + 1)
+	emptySlice := make([]interface{}, 2)
+	emptySlice[0] = ""
+	emptySlice[1] = ""
+
+	for i := len(itemList); i < 66; i++ {
+		values = append(values, emptySlice)
+	}
+
+	//n := strconv.Itoa(len(itemList) + 1)
 
 	data := []*sheets.ValueRange{{
 		MajorDimension: rowDimension,
-		Range:          overviewSheet + "!A2" + ":B" + n,
+		Range:          sheet + overviewRange,
 		Values:         values,
 	}}
 
