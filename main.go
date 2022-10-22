@@ -14,14 +14,23 @@ import (
 )
 
 const (
-	sheetId     = "1WDW-gIhLJquDh_Y7LIG7Dvq75saF5SqhmGLQ9oWr_34"
-	wowHeadBase = "https://www.wowhead.com/item="
+	sheetId        = "1WDW-gIhLJquDh_Y7LIG7Dvq75saF5SqhmGLQ9oWr_34"
+	wowHeadBase    = "https://www.wowhead.com/item="
+	dateFormat     = "2006-01-02"
+	dateTimeFormat = "2006-01-02 15:04:05"
 )
 
 var (
 	//go:embed service-account.json
 	serviceAccountJson []byte
 )
+
+type ModifierPair struct {
+	Modifier int
+	Player   string
+}
+type ModifierPairList = []ModifierPair
+type ModifierMap = map[string]ModifierPairList
 
 type SoftRes struct {
 	Item     string
@@ -34,6 +43,7 @@ type SoftRes struct {
 	Modifier int
 	Date     time.Time
 }
+type SoftResList = []SoftRes
 
 type Drop struct {
 	Date   time.Time
@@ -41,6 +51,7 @@ type Drop struct {
 	Winner string
 	Empty  string // this is needed because the export ends in a comma for some reason
 }
+type DropList = []Drop
 
 func main() {
 	for i, drop := range readLootLogCsv("data/week1-lootlog.csv") {
@@ -48,11 +59,11 @@ func main() {
 	}
 }
 
-func readLootLogCsv(filename string) []Drop {
+func readLootLogCsv(filename string) DropList {
 	dropList := make([]Drop, 0)
 
 	readAndProcessCsv(filename, false, func(record []string) {
-		d, _ := time.Parse("2006-01-02", record[0])
+		d, _ := time.Parse(dateFormat, record[0])
 
 		dropList = append(dropList, Drop{
 			Date:   d,
@@ -65,12 +76,12 @@ func readLootLogCsv(filename string) []Drop {
 	return dropList
 }
 
-func readSoftResCsv(filename string) []SoftRes {
+func readSoftResCsv(filename string) SoftResList {
 	resList := make([]SoftRes, 0)
 
 	readAndProcessCsv(filename, true, func(record []string) {
 		mod, _ := strconv.Atoi(record[7])
-		d, _ := time.Parse("2006-01-02 15:04:05", record[8])
+		d, _ := time.Parse(dateTimeFormat, record[8])
 
 		resList = append(resList, SoftRes{
 			Item:     record[0],
