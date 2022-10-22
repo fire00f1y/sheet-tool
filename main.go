@@ -48,24 +48,9 @@ func main() {
 }
 
 func readLootLogCsv(filename string) []Drop {
-	f, err := os.Open(filename)
-	if err != nil {
-		log.Fatalln("failed to open loot log file", err)
-	}
-	defer f.Close()
-
-	r := csv.NewReader(f)
 	dropList := make([]Drop, 0)
 
-	for {
-		record, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Printf("error reading line in loot log: %v\n", err)
-			continue
-		}
+	readAndProcessCsv(filename, false, func(record []string) {
 		d, _ := time.Parse("2006-01-02", record[0])
 
 		dropList = append(dropList, Drop{
@@ -74,36 +59,15 @@ func readLootLogCsv(filename string) []Drop {
 			Winner: record[2],
 			Empty:  record[3],
 		})
-	}
+	})
 
 	return dropList
 }
 
 func readSoftResCsv(filename string) []SoftRes {
-	f, err := os.Open(filename)
-	if err != nil {
-		log.Fatalln("failed to open soft reserve file", err)
-	}
-	defer f.Close()
-
 	resList := make([]SoftRes, 0)
 
-	r := csv.NewReader(f)
-	header := true
-	for {
-		record, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Printf("Error reading csv: %v\n", err)
-			continue
-		}
-		if header {
-			header = false
-			continue
-		}
-
+	readAndProcessCsv(filename, true, func(record []string) {
 		mod, _ := strconv.Atoi(record[7])
 		d, _ := time.Parse("2006-01-02 15:04:05", record[8])
 
@@ -118,9 +82,36 @@ func readSoftResCsv(filename string) []SoftRes {
 			Modifier: mod,
 			Date:     d,
 		})
-	}
+	})
 
 	return resList
+}
+
+func readAndProcessCsv(filename string, hasHeader bool, processor func(record []string)) {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatalln("failed to open soft reserve file", err)
+	}
+	defer f.Close()
+
+	r := csv.NewReader(f)
+	header := true
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Printf("Error reading csv: %v\n", err)
+			continue
+		}
+		if hasHeader && header {
+			header = false
+			continue
+		}
+
+		processor(record)
+	}
 }
 
 func readFromSheets() {
